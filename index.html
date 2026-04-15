@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <title>Baleia - O Espetáculo</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* ==========================================
+           1. VARIÁVEIS E RESET
+           ========================================== */
+        :root {
+            --bg-black: #000000;
+            --bg-earth: #28201b; 
+            --blue-dark: #3c5378;
+            --blue-mid: #5792ca;
+            --blue-light: #7cc1e6;
+            --text-beige: #c9cbbc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* SCROLLBAR CUSTOMIZADA */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-black); }
+        ::-webkit-scrollbar-thumb { background: var(--blue-dark); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--blue-mid); }
+
+        body, html {
+            width: 100%;
+            background: linear-gradient(to bottom, var(--bg-black) 0%, #0a0a0a 50%, var(--bg-earth) 100%);
+            background-attachment: fixed;
+            color: var(--text-beige);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        h1, h2, h3, .modal-nome {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* ==========================================
+           2. COMPONENTES GERAIS
+           ========================================== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: var(--blue-light);
+            font-style: italic;
+            letter-spacing: 1px;
+            text-shadow: 0 4px 20px rgba(124, 193, 230, 0.2);
+        }
+
+        .cta-button {
+            background-color: transparent;
+            color: var(--blue-light);
+            padding: 18px 45px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            border: 1px solid var(--blue-mid);
+            display: inline-block;
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(87, 146, 202, 0.1);
+        }
+        
+        .cta-button:hover {
+            background-color: var(--blue-mid);
+            color: var(--bg-black);
+            box-shadow: 0 0 30px rgba(124, 193, 230, 0.4);
+            transform: translateY(-3px);
+        }
+
+        /* ==========================================
+           3. SEÇÕES ESPECÍFICAS
+           ========================================== */
+        
+        /* --- HERO --- */
+        #hero-section {
+            position: relative;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background-color: var(--bg-black);
+        }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* --- SINOPSE --- */
+        .sinopse-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .sinopse-text p {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: var(--text-beige);
+            opacity: 0.9;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* --- GALERIA HORIZONTAL GSAP --- */
+        .galeria-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-black);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .galeria-title {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            z-index: 10;
+        }
+
+        .galeria-track {
+            display: flex;
+            gap: 40px;
+            padding: 0 50vw; 
+            align-items: center;
+            height: 60vh;
+        }
+
+        .galeria-item {
+            flex-shrink: 0;
+            width: 60vw;
+            max-width: 700px;
+            height: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            border: 1px solid rgba(124, 193, 230, 0.1);
+        }
+
+        .galeria-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(40%);
+            transition: filter 0.5s ease, transform 0.5s ease;
+        }
+
+        .galeria-item:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        /* --- VÍDEO LOCAL --- */
+        .video-wrapper {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border: 1px solid rgba(60, 83, 120, 0.3);
+            background: #000;
+        }
+        .local-video {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 80vh;
+        }
+
+        /* --- ELENCO MINIMALISTA --- */
+        .elenco-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 30px;
+        }
+        .ator-card {
+            background: transparent;
+            border-radius: 12px;
+            overflow: hidden;
+            text-align: center;
+            cursor: pointer;
+        }
+        .ator-img-wrapper {
+            width: 100%;
+            height: 320px; 
+            overflow: hidden;
+            border-radius: 12px;
+            position: relative;
+            border: 1px solid rgba(201, 203, 188, 0.1);
+            transition: border-color 0.4s ease;
+            background-color: var(--bg-black); 
+        }
+        .ator-card:hover .ator-img-wrapper { border-color: var(--blue-mid); }
+        .ator-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            object-position: center top;
+            filter: grayscale(100%) contrast(1.2) brightness(0.8);
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .ator-card:hover .ator-img { 
+            filter: grayscale(0%) contrast(1.1) brightness(1); 
+            transform: scale(1.05);
+        }
+        .ator-info { padding: 20px 10px; }
+        .ator-nome { font-size: 1.3rem; color: var(--text-beige); transition: color 0.3s; }
+        .ator-card:hover .ator-nome { color: var(--blue-light); }
+
+        /* --- MODAL (POP-UP) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            padding: 20px;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: linear-gradient(145deg, #0a0e17, var(--bg-black));
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px; 
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(50px) scale(0.95);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            border: 1px solid var(--blue-dark);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
+        .btn-fechar {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 2.5rem;
+            color: var(--text-beige);
+            cursor: pointer;
+            z-index: 10;
+            line-height: 1;
+            transition: color 0.3s, transform 0.3s;
+            background: rgba(0,0,0,0.5); 
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-fechar:hover { color: var(--blue-light); transform: rotate(90deg); }
+        
+        .modal-img-container {
+            width: 100%;
+            height: 450px; 
+            flex-shrink: 0;
+            background-color: var(--bg-black);
+            border-bottom: 2px solid var(--blue-dark);
+        }
+        .modal-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            border-radius: 16px 16px 0 0;
+            display: block;
+        }
+        
+        .modal-body { padding: 40px; }
+        .modal-nome { font-size: 2.5rem; color: var(--blue-light); margin-bottom: 5px;}
+        .modal-papel { font-size: 1rem; color: var(--blue-mid); margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px;}
+        .modal-bio { font-size: 1.1rem; line-height: 1.8; color: var(--text-beige); margin-bottom: 30px; }
+        .modal-insta {
+            display: inline-block;
+            background: transparent;
+            color: var(--blue-light);
+            border: 1px solid var(--blue-mid);
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .modal-insta:hover { background: var(--blue-mid); color: var(--bg-black); }
+
+        /* --- INSTAGRAM FEED --- */
+        .insta-section {
+            padding: 100px 20px;
+            background: rgba(60, 83, 120, 0.05);
+            border-top: 1px solid rgba(60, 83, 120, 0.1);
+            border-bottom: 1px solid rgba(60, 83, 120, 0.1);
+        }
+        .insta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto 50px auto;
+        }
+        .insta-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .insta-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .insta-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            gap: 25px;
+            color: var(--text-beige);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .insta-item:hover img { transform: scale(1.08); }
+        .insta-item:hover .insta-overlay { opacity: 1; }
+        .insta-icon { display: flex; align-items: center; gap: 8px; }
+        .insta-icon svg { width: 24px; height: 24px; fill: currentColor; }
+        .insta-cta-container { text-align: center; }
+
+        /* --- AGENDA & INGRESSOS --- */
+        .agenda-list { display: flex; flex-direction: column; gap: 20px; }
+        .agenda-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(60, 83, 120, 0.1);
+            padding: 35px; border-radius: 12px;
+            border-left: 4px solid var(--blue-mid);
+            transition: transform 0.3s, background 0.3s;
+        }
+        .agenda-item:hover {
+            transform: translateX(10px);
+            background: rgba(60, 83, 120, 0.2);
+        }
+        .agenda-data { font-size: 1.5rem; font-weight: 700; color: var(--blue-light); }
+        .agenda-local { color: var(--text-beige); margin-top: 8px; }
+
+        /* --- PATROCINADORES --- */
+        .patrocinadores-section {
+            padding: 60px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(60, 83, 120, 0.2);
+        }
+        .patrocinadores-title {
+            text-align: center;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--blue-dark);
+            margin-bottom: 40px;
+        }
+        .patrocinadores-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 50px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .patrocinio-logo {
+            max-height: 60px;
+            max-width: 150px;
+            filter: grayscale(100%) opacity(0.5);
+            transition: all 0.4s ease;
+        }
+        .patrocinio-logo:hover { filter: grayscale(0%) opacity(1); }
+
+        /* --- FOOTER --- */
+        footer { 
+            text-align: center; padding: 40px 20px; background: var(--bg-black); 
+            font-size: 0.9rem; color: var(--blue-dark); 
+        }
+
+        /* --- RESPONSIVO --- */
+        @media (max-width: 768px) {
+            .agenda-item { flex-direction: column; text-align: center; gap: 25px; }
+            .section-title { font-size: 2.2rem; }
+            
+            .ator-img-wrapper { height: 350px; } 
+            .modal-img-container { height: 350px; } 
+            .modal-body { padding: 25px; }
+            
+            .modal-nome { font-size: 2rem; }
+            .container { padding: 60px 20px; }
+            .cta-button { width: 100%; }
+            .galeria-item { width: 85vw; height: 50vh; }
+            .galeria-track { height: 50vh; }
+            .patrocinadores-grid { gap: 30px; }
+            .patrocinio-logo { max-height: 40px; }
+            .insta-grid { grid-template-columns: 1fr 1fr; } 
+        }
+
+        /* Classes de animação GSAP */
+        .gsap-reveal { opacity: 0; transform: translateY(50px); }
+        .gsap-stagger { opacity: 0; transform: translateY(30px); }
+    </style>
+</head>
+<body>
+
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
+
+    <section id="hero-section">
+        <div id="hero-canvas"></div>
+    </section>
+
+    <section id="sinopse" class="container">
+        <h2 class="section-title gsap-reveal">A Travessia</h2>
+        <div class="sinopse-content gsap-reveal">
+            <div class="sinopse-text">
+                <p>Inspirado na obra "Vidas Secas", de Graciliano Ramos, o espetáculo mergulha na travessia do sertão a partir do olhar sensível da cachorrinha que observa, sente e imagina.</p>
+                <p>Através de sua perspectiva, a realidade seca e dura ganha contornos de poesia. O que para os homens é luta silenciosa, para Baleia é música e fábula.</p>
+                <p>Realidade e imaginação se entrelaçam, num universo cênico onde bonecos, brinquedos e engenhocas artesanais dão forma ao invisível, em uma experiência imersiva que conjuga palavra, som e movimento, de forma sensível e inventiva, capaz de transitar entre o concreto e o simbólico, o poético e o cotidiano.</p>
+            </div>
+            <a href="#agenda" class="cta-button">Garantir Ingresso</a>
+        </div>
+    </section>
+
+    <section id="galeria" class="galeria-container">
+        <div class="galeria-track">
+            <div class="galeria-item"><img src="carrossel12.png" alt="Cena 2"></div>
+            <div class="galeria-item"><img src="carrossel10.png" alt="Cena 3"></div>
+            <div class="galeria-item"><img src="carrossel9.png" alt="Cena 4"></div>
+            <div class="galeria-item"><img src="carrossel13.png" alt="Cena 5"></div>
+        </div>
+    </section>
+
+    <section id="video" class="container">
+        <h2 class="section-title gsap-reveal">Sinta a Atmosfera</h2>
+        <div class="video-wrapper gsap-reveal">
+            <video class="local-video" controls poster="hero-baleia.jpg"> <source src="baleia.mp4" type="video/mp4">
+                Seu navegador não suporta a tag de vídeo.
+            </video>
+        </div>
+    </section>
+
+    <section id="elenco" class="container">
+        <h2 class="section-title gsap-reveal">Quem Faz a Magia</h2>
+        <div class="elenco-grid" id="grid-atores"></div>
+    </section>
+
+    <div class="modal-overlay" id="modal-ator">
+        <div class="modal-content">
+            <span class="btn-fechar" id="fechar-modal">&times;</span>
+            <div class="modal-img-container"> <img id="modal-foto" src="" alt="" class="modal-img">
+            </div>
+            <div class="modal-body">
+                <h3 id="modal-nome-texto" class="modal-nome">Nome</h3>
+                <p id="modal-papel-texto" class="modal-papel">Papel</p>
+                <p id="modal-bio-texto" class="modal-bio">Biografia do ator aqui.</p>
+                <a id="modal-link-insta" href="#" target="_blank" class="modal-insta">📱 Acompanhar no Instagram</a>
+            </div>
+        </div>
+    </div>
+
+    <section id="instagram" class="insta-section">
+        <div class="container" style="padding: 0;">
+            <h2 class="section-title gsap-reveal">Nos Bastidores</h2>
+            
+            <div class="insta-grid">
+                <a href="https://www.instagram.com/p/DWHBk1FERlu/" target="_blank" class="insta-item gsap-stagger">
+                    <img src="postinsta1.png" alt="Post Instagram">
+                    <div class="insta-overlay">
+                        <div class="insta-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> 83
+                        </div>
+                        <div class="insta-icon">
+                            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg> 16
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="https://www.instagram.com/p/DXE2jHVFsEL/?img_index=1" target="_blank" class="insta-item gsap-stagger">
+                    <img src="postinsta2.png" alt="Post Instagram">
+                    <div class="insta-overlay">
+                        <div class="insta-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> 77
+                        </div>
+                        <div class="insta-icon">
+                            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg> 10
+                        </div>
+                    </div>
+                </a>
+                
+                <a href="https://www.instagram.com/p/DW7NuRxkVDx/?img_index=1" target="_blank" class="insta-item gsap-stagger">
+                    <img src="postinsta3.png" alt="Post Instagram">
+                    <div class="insta-overlay">
+                        <div class="insta-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> 32
+                        </div>
+                        <div class="insta-icon">
+                            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg> 12
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="insta-cta-container gsap-reveal">
+                <a href="https://www.instagram.com/baleiaespetaculo/" target="_blank" class="cta-button">Siga no Instagram</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="agenda" class="container">
+        <h2 class="section-title gsap-reveal">Calendário de Apresentações</h2>
+        <div class="agenda-list">
+            <div class="agenda-item gsap-reveal">
+                <div>
+                    <div class="agenda-data">17, 18 e 19 de Abril | 19h00</div>
+                    <div class="agenda-local">Funarte SP - São Paulo, SP</div>
+                </div>
+                <a href="https://www.sympla.com.br/produtor/coletivocarpintariadeideias?utm_source=ig&utm_medium=social&utm_content=link_in_bio" target="_blank" class="cta-button" style="padding: 12px 30px; font-size: 0.9rem;">Comprar Ingresso</a>
+            </div>
+            
+            <div class="agenda-item gsap-reveal">
+                <div>
+                    <div class="agenda-data">24, 25 e 26 de Abril | 19h00</div>
+                    <div class="agenda-local">Funarte SP - São Paulo, SP</div>
+                </div>
+                <a href="https://www.sympla.com.br/produtor/coletivocarpintariadeideias?utm_source=ig&utm_medium=social&utm_content=link_in_bio" target="_blank" class="cta-button" style="padding: 12px 30px; font-size: 0.9rem;">Comprar Ingresso</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="patrocinadores-section">
+        <h3 class="patrocinadores-title gsap-reveal">Apoio Cultural</h3>
+        <div class="patrocinadores-grid gsap-reveal">
+            <img src="brasil.png" alt="Patrocinador 1" class="patrocinio-logo">
+            <img src="gol.png" alt="Patrocinador 2" class="patrocinio-logo">
+            <img src="viva.png" alt="Patrocinador 3" class="patrocinio-logo">
+            <img src="leu.png" alt="Patrocinador 4" class="patrocinio-logo">
+            <img src="palarte.png" alt="Patrocinador 5" class="patrocinio-logo">
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 Espetáculo Baleia. Todos os direitos reservados.</p>
+        <p>Desenvolvido por <a href="https://anajuliatorianipessoa.vercel.app/" style="color: #c9cbbc">AJ</a></p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. DADOS DO ELENCO
+        // ==========================================
+        const dadosElenco = [
+            {
+                nome: "Vassa",
+                papel: "Diretor Musical e Ator",
+                img: "vassa.png", // Todas .png
+                bio: "Vassa é ator e músico multi-instrumentista (percussão e cordas). Estuda teatro na Escola Macunaíma e é formado em Análise e Desenvolvimento de Sistemas pelo IFSP. Como ator, participou do espetáculo “Quarança” (2024), com direção de Renata Hallada, além de outras criações e adaptações, e esteve recentemente em cartaz com “Severino, o espetáculo”. Como músico, já se apresentou em espaços como a Sala São Paulo, com o projeto Estaleiro Musical do maestro Renato Misiuk, e em eventos culturais na Praça 14 Bis, no Guarujá. Assina a direção musical do nosso espetáculo, sendo responsável pelas trilhas que embalam a nossa história.",
+                insta: "https://instagram.com/SOUVASSA"
+            },
+            {
+                nome: "Gui Romaniche",
+                papel: "Ator e Figurinista",
+                img: "guir.png",
+                bio: "Gui Romaniche é ator, cantor e dançarino. Formado em Cinema, Teatro e Arquitetura. Atualmente estudante de Produção Cultural e dança contemporânea na SP Escola de Dança. Experimenta a arte com as mãos: pinta, borda, cola, inventa imagens. Como ator, já deu vida a personagens em espetáculos como “Singularidades em Ruínas”, “The Pilgrims”, o Musical, “Cordel de Três Dobras”, “Vila da Morte”, “Casulopólis”, “O Grande Jogo” e, mais recentemente, em “Severino, o espetáculo”. Colaborou ainda em grandes musicais da Cia Nissi, como “Hadassa” e “Luther King”. Além de estar em cena, é quem veste o espetáculo com sua visão estética, cuidando dos figurinos e da identidade visual que atravessa toda a comunicação que você vê por aqui.",
+                insta: "https://instagram.com/GUIROMANICHE"
+            },
+            {
+                nome: "Luana Misael",
+                papel: "Atriz e Assistente de Direção",
+                img: "luana.png",
+                bio: "Luana Misael é atriz, cantora, bailarina e assistente de direção. Construiu uma trajetória que une sua formação em Administração à sua paixão pela arte. Iniciou sua jornada artística aos 8 anos de idade nos palcos do colégio e na igreja, e desde então vem consolidando sua presença em diversos projetos autorais, coletivos e em produções teatrais e musicais, transitando entre palco, bastidores e processos criativos. Estudou Teatro na Escola Bezalel de Artes em São Paulo e possui diversos cursos complementares de dança, canto e teatro musical. Dentre as produções em que atuou se destacam “O Jardim do Inimigo”, “O Trem da Meia Noite”, “Luther King, o Musical”, “Oliver, o Navio Perdido”.",
+                insta: "https://instagram.com/LUANAMISAEL"
+            },
+            {
+                nome: "Bruna Porto",
+                papel: "Atriz e Bailarina",
+                img: "bruna.png",
+                bio: "Bruna Porto começou sua jornada artística aos 16 anos, estudando dança contemporânea por seis anos na Oficina Contemporânea de Barueri e no Instituto Arte e Vida, dirigido pela coreógrafa Adriana Castelo. Se aprofundou em canto e coral por dois anos. Aos 20 anos, ingressou na Escola de Teatro de Barueri e participou de diversas oficinas, com destaque para o Encontrart 2014 e a Oficina de Canto e Atuação, ministrada por Annie Murath na Universidade de Chile em 2016. Em 2014, Bruna juntou-se à Cia de Artes Nissi, onde permaneceu por quase nove anos. Durante esse período, participou de várias peças, produções audiovisuais e musicais, incluindo “Rua Azusa - o Musical” e “Luther King - o Musical”.",
+                insta: "https://instagram.com/A.PORTOBRUNA"
+            },
+            {
+                nome: "Gabriel Lima",
+                papel: "Ator e Maquiador",
+                img: "biel.png",
+                bio: "Gabriel Lima é ator e cantor, atuou em musicais como “Rua Azusa”, “Luther King” e “The Pilgrims”, destacando-se pela intensidade vocal e interpretação. Em turnê com a Cia Nissi, colaborou em diferentes espetáculos, expandindo sua experiência artística e levando mensagens transformadoras por meio da arte. Dedicado ao ofício, segue ampliando seu repertório e aprimorando suas técnicas em teatro, canto e dança. Além de estar no palco, também é o responsável pelas maquiagens que dão rosto às nossas personagens.",
+                insta: "https://instagram.com/BRIELLIMA"
+            },
+            {
+                nome: "Clara Geraldes",
+                papel: "Atriz e Pedagoga",
+                img: "anaclara.png",
+                bio: "Clara Geraldes é atriz e pedagoga, dedica-se a unir sua paixão pela arte com o poder da educação. Formada em teatro pela Escola de Artes da Cia Nissi e em Libras pela DERDIC (PUC), atualmente realiza seu mestrado em educação na UNIFESP, onde pesquisa o uso do teatro na educação de surdos. Recentemente esteve em cartaz em “Severino, o espetáculo”, e integrou o elenco de musicais como “O Canto da Jandaia” (2023), “Era Uma Vez” (2024), “Invisíveis” (2024) e “Melodia de Natal” (2024). Enxerga no teatro, não apenas sua profissão, mas também sua vocação e ferramenta de luta.",
+                insta: "https://instagram.com/CLARAGERALDES_"
+            },
+            {
+                nome: "Melyssa Braga",
+                papel: "Atriz e Farmacêutica",
+                img: "mel.png",
+                bio: "Melyssa Braga é atriz, estudante de canto e farmacêutica, formada em Teatro pela Escola Bezalel de Artes e em Farmácia pela Universidade São Judas Tadeu. Sua trajetória inclui espetáculos como “O Jardim do Inimigo”, “Melodia de Natal”, “Refúgio de Natal”, “Cordel de Três Dobras”, “The Pilgrims”, “O Homem da Poltrona Estofada” e, mais recentemente, “Severino, o espetáculo”. Também colaborou com a Cia Nissi em diferentes montagens e desenvolveu pesquisas em palhaçaria. Enxerga a arte como espaço de cura e transformação, acreditando no riso como ferramenta de resistência e delicadeza.",
+                insta: "https://instagram.com/MELYSSA.C.BRAGA"
+            },
+            {
+                nome: "Wand Barreto",
+                papel: "Ator",
+                img: "wand.png",
+                bio: "Wand Barreto passou anos trabalhando como aeronauta, até que decidiu dar vida a um grande sonho e paixão: a arte. Formou-se como ator na Escola Superior de Artes Célia Helena, onde também cursa Graduação e Licenciatura em Artes Cênicas. Recentemente, atuou como Faraó no musical “Moisés, o Príncipe do Egito”, da Cia Nissi. Acredita na arte como um veículo de transformação e inspiração, capaz de ressignificar vidas e valores.",
+                insta: "https://instagram.com/WANDBARRETOOFC"
+            },
+            {
+                nome: "Lu Mis Amarante",
+                papel: "Atriz e Visagista",
+                img: "luu.png",
+                bio: "Lu Mis Amarante é atriz, cantora e visagista. Nos últimos anos tem se dedicado ao palco e bastidores de produções em teatro musical. Como atriz se destacam os musicais “Um lugar para o Rei”, “Night Show”, “Vila da morte”, “The Pilgrims” e “Céu de Ilusões”, dentre outros. Como visagista assinou espetáculos como “Refúgio de Natal”, “Cordel de Três Dobras”, “Trem da meia noite”, “Oliver e o Navio Perdido”. Foi camareira nas produções “Hadassa, o musical”, “Luther King, o musical”, ambas da Cia Nissi. Além de estar em cena, é quem cuida de todo o visagismo do nosso espetáculo, na confecção de perucas e penteados que irão contar essa história.",
+                insta: "https://instagram.com/LUMISAMARANTE"
+            },
+            {
+                nome: "Michele Albuquerque",
+                papel: "Atriz e Professora",
+                img: "mii.png",
+                bio: "Michele Albuquerque é atriz, cantora e professora, iniciou sua formação na Escola de Artes da Cia Nissi, onde participou de montagens como “Amor por Anexins” (2020), “The Pilgrims” (2021), “Vila da Morte” (2022), “Casamento de Barro” (2022), “O Jardim do Inimigo” (2023) e “A Gaivota” (2023). Em 2024, ampliou sua pesquisa artística no Espaço Zoe, participando da prática de montagem “Vestido de Noiva” e do projeto “Contos de Tennessee Williams”, sob direção de Einat Falbel. No mesmo ano, concluiu o curso de Direção com Caique Oliveira e assinou a direção e produção do espetáculo “Alice Descobrindo Maravilhas”. Desde 2023, atua como professora de teatro unindo experiência de palco à sala de aula.",
+                insta: "https://instagram.com/MII_ALB"
+            },
+            {
+                nome: "Samuel Meirellis",
+                papel: "Ator e Compositor",
+                img: "samuel.png",
+                bio: "Samuel Meirellis é ator, cantor, compositor e dublador. Formado no curso técnico em Teatro do Senac São Miguel e na Escola de artes da Cia Nissi, onde aprofundou sua atuação com ênfase em teatro musical. Iniciou sua trajetória artística motivado pela dublagem, conquistando destaque ao dar voz cantada ao personagem Willy Wonka, no filme “Wonka”. Em paralelo, atuou em musicais como “Luther King”, “Martelino e o Mistério da Vila de Madeira” e “Moisés, Príncipe do Egito”, no qual interpretou “Moisés Jovem” e foi indicado ao Prêmio DID na categoria Ator Revelação em Musicais. Além de atuar, compôs canções e arranjos para espetáculos da Cia Nissi e também para projetos independentes, como “Foi o que tu me destes”.",
+                insta: "https://instagram.com/SAMUELMEIRELLIS"
+            },
+            {
+                nome: "Paloma Ferraz",
+                papel: "Atriz e Maquiadora",
+                img: "paloma.png",
+                bio: "Paloma Ferraz é natural de São Paulo e criada no Ceará. Nasceu com a comédia enraizada nas suas histórias. Formada em teatro musical pela escola de artes da Cia Nissi, também é maquiadora e clown. Nos palcos já deu vida à Cristina em “O grande jogo”, Estrela em “The Pilgrims”, Firulinha em “Refúgio de Natal”, Rosa em “Cordel de 3 dobras”. Ama tudo que envolve arte e pesquisa suas vivências para construção de personagens.",
+                insta: "https://instagram.com/_.PALOMAFERRAZ"
+            },
+            {
+                nome: "Gabriel Rodrigues",
+                papel: "Ator e Músico",
+                img: "gabriel.png",
+                bio: "Gabriel Rodrigues é um amante das artes em formação. Ex-jogador de futebol profissional, compositor e instrumentista desde os 12 anos, atuou recentemente no musical “Três Ferramentas”, montagem escolar da Cia Nissi, onde segue seus estudos em teatro.",
+                insta: "https://instagram.com/EU.GABRIELRODRIGUES_"
+            },
+            {
+                nome: "Daniel Lacerda",
+                papel: "Ator e Psicólogo",
+                img: "daniel.png",
+                bio: "Daniel Lacerda é psicólogo e ator. Sua jornada artística começou em 2014, quando se iniciou no curso de teatro no CULTUAR, em sua cidade natal, e logo passou a participar de importantes projetos culturais locais, como \"Prometeu Acorrentado\", \"Sacra Folia\", \"Reticências\" e \"O Levante das Mulheres\". Em 2023, ampliou sua formação, ingressando na EBA, onde se envolveu em produções como \"Brasilidades\", \"Refúgio de Natal\" e \"Três Ferramentas\". Também atuou em algumas obras da Cia Nissi como \"Melodia de Natal\", \"O Reino dos Órfãos\" e \"Cordeiro Escolhido\". No audiovisual, atuou em curtas como \"Meu Ombro Amigo\" e \"A Mulher Contrabandista\". Recentemente integrou o elenco do videoclipe \"Sê Forte\", do cantor Gabriel Guedes. Com uma experiência significativa em oficinas de criatividade, busca conectar psicologia, projetos sociais e arte, usando essas ferramentas para promover saúde mental.",
+                insta: "https://instagram.com/DAN.LACERDA10"
+            },
+            {
+                nome: "Raí Geovani",
+                papel: "Ator e Diretor",
+                img: "rai.png",
+                bio: "Raí Geovani é ator, diretor e arte-educador, formado em Teatro pela Universidade Anhembi Morumbi e pós-graduado em Direção de Arte. Sua trajetória no teatro começou em 2008, no grupo da escola, onde descobriu sua paixão pela arte. Também integrou, durante quatro anos, um grupo de street dance. Como ator, participou de peças como “O Pagador de Promessas”, “À Beira”, “O Analista de Bagé”, “Geração de Dorcas”, “Severino, o espetáculo”, entre outros. Seu projeto mais recente: “Foi o que Tu me Destes”, no qual atuou, dirigiu e assinou a dramaturgia.",
+                insta: "https://instagram.com/RAIGEOVANI"
+            },
+            {
+                nome: "Débora Ferr",
+                papel: "Atriz e Cantora",
+                img: "debora.png",
+                bio: "Débora Ferr - Natural de Recife e criada em Minas Gerais, é atriz e cantora. Formada em Teatro pela Escola Bezalel de Artes, em São Paulo, onde também integrou a Cia de Artes Nissi em diversos espetáculos musicais. Paralelamente à arte, trilha caminhos na área da saúde, com formação em Farmácia pela Universidade Presbiteriana Mackenzie. Como atriz, integrou o elenco de espetáculos como \"Hadassa, o Musical\", \"Melodia de Natal\", \"Refúgio de Natal\", \"Cordel de Três Dobras\", \"The Pilgrims\", \"O Homem da Poltrona Estofada\", \"Tudo se fez novo o musical\", \"Ryde the Cyclone\" (No olho do Cyclone), \"Severino o espetáculo\", dentre outros. Também atuou nos bastidores como reforço vocal em produções musicais. Débora acredita no poder transformador da arte — dentro e fora dos palcos — e leva os fundamentos do teatro para o universo corporativo, utilizando a escuta ativa, a empatia e a expressividade como pontes de conexão e desenvolvimento humano. Em nosso espetáculo, ela participa do elenco alternante.",
+                insta: "https://instagram.com/DEBORA_FERR"
+            },
+            {
+                nome: "Lakís Farias",
+                papel: "Atriz e Assistente de Figurino (Alternante)",
+                img: "lakis.png",
+                bio: "Lakís Farias é natural da Bahia, é atriz, cantora, dançarina e assistente de Figurino. Estudou Teatro na Escola Bezalel de Artes em São Paulo. Como atriz, atuou em espetáculos como: \"Seja Luz\" (2025/2026), \"Os Óculos Mágicos de Charlotte\" (2025), \"Ziraldo e Suas Histórias\" (2025), \"Benjamim, o palhaço negro (2025)\", \"Os donos do mundo (2025)\", \"Tina Respeito\" (2024) onde deu vida a Kátia, \"Álbum de Família de Nelson Rodrigues - na visão de Jorge Farjalla\" (2024) onde interpretou Teresa. Foi Rosa em \"Mundaréu de mim\" (2023), e atuou também em espetáculos como: \"Hadassa, o Musical\" (2022-2023), \"Rua Azusa, o Musical\" (2021-2023), \"O Pequeno Príncipe, uma Jornada Musical\" (2022), \"Como é que se diz Eu te amo\" (2024), \"O Jardim do Inimigo\" (2023), “Severino, o espetáculo” (2025), dentre outros espetáculos itinerantes. Como assistente de figurino atuou no Musical \"Hadassa, o Musical\" em 2022, onde também atuou como camareira no início da temporada do mesmo espetáculo. Em nosso espetáculo, compôs a música Calado Andante e também participa do elenco alternante.",
+                insta: "https://instagram.com/LAKIS_FARIAS"
+            },
+            {
+                nome: "Lucas Aquino",
+                papel: "Ator e Diretor",
+                img: "lucas.png",
+                bio: "Lucas Aquino é ator e cantor, possui uma trajetória marcada pela ligação entre o teatro musical e o engajamento social. Formado em Teatro pela Escola de artes da Cia Nissi, integrou o elenco de “Moisés – Príncipe do Egito, o Musical” e participou de produções como “Refúgio de Natal” e “The Pilgrims”. Além de sua atuação nos palcos, também dirigiu peças em projetos sociais e colaborou em dezenas de peças com a Cia Nissi. Apaixonado pelo público infantil, se dedica à contação de histórias, usando a palhaçaria. Seu mais recente projeto atuando foi “Severino, o espetáculo”. Assina a assistência de direção e dramaturgia do nosso espetáculo, trazendo toda sua poesia e sensibilidade, e também integra nosso grande elenco.",
+                insta: "https://instagram.com/LUCASAQUINOFP"
+            },
+            {
+                nome: "Paulinho Ramos",
+                papel: "Diretor Geral e Ator",
+                img: "paulinho.png",
+                bio: "Paulinho Ramos é ator, bailarino, diretor, roteirista e preparador corporal. Seus últimos trabalhos como ator incluem os musicais “Pequeno príncipe – uma viagem musical”, “Rua Azusa”, “Hadassa”, “Mundaréu de Mim”, “Peter Pan – crescer é preciso” e “Um Grande Encontro”. Sua abordagem de criação, se baseia na expressividade do movimento, criando a dramaturgia a partir da conexão entre corpo e narrativa. Idealizador do projeto, assina a direção geral do espetáculo.",
+                insta: "https://instagram.com/PAULINHO.RAMOS"
+            },
+            {
+                nome: "Alyo Sousa",
+                papel: "Ator e Arranjador Vocal",
+                img: "alyo.png",
+                bio: "Alyo é publicitário, ator e cantor. Filho de músicos, iniciou sua trajetória artística ainda na infância, desenvolvendo sua musicalidade desde cedo. Antes de subir aos palcos, trabalhou como backing vocal e atuou nos bastidores de audiovisual e de montagens. Já integrou o elenco de espetáculos como “Prometeu Acorrentado” (2023), “Melodia de Natal” (2024) e “Milagres” (2025). Recentemente, deu vida ao personagem Boaz no musical “Três Ferramentas”, da EBA - Cia Nissi. Seu olhar sensível colabora na construção de cenas, personagens e atmosferas dramáticas. Ele assina os arranjos vocais e integra a equipe de comunicação do nosso espetáculo.",
+                insta: "https://instagram.com/ALYOSOUSA"
+            },
+            {
+                nome: "Bruno Azevedo",
+                papel: "Cenógrafo",
+                img: "bruno.png",
+                bio: "Bruno Azevedo é arquiteto, figurinista e professor de teatro e música. Trabalhou na cenografia de produções como \"Castelo Rá-Tim-Bum: O Reencontro\", \"Cocorico\", \"MasterChef\" e outras. Também atuou em diferentes áreas da arte, assinando a capa da edição de agosto de 2024 da Vogue, os figurinos da live do Oscar AdoroCinema e, em parceria com a Addedo, foi premiado no Venice TV Awards 2025. Integra equipes de cenografia de espetáculos como \"Turma da Mônica: A Liga dos Pets\" e \"O Pequeno Príncipe\", por Fernanda Chamma. É pós-graduado em Direção de Cinema e atualmente cursa sua segunda pós-graduação em Teatro Musical, com ênfase em canto. Com toda sua inventividade, ele assina a cenografia do nosso espetáculo.",
+                insta: "https://instagram.com/BLACBR"
+            },
+            {
+                nome: "Rafael Casimiro",
+                papel: "Iluminador",
+                img: "rafael.png",
+                bio: "Rafael Casimiro é formado pelo Instituto Criar de TV, Cinema e Novas Mídias (2008). Em 2009, cursou Iluminação Cênica na SP Escola de Teatro (AAPA), iniciando uma trajetória sólida na área técnica e artística da iluminação. Em 2012 e 2013, atuou como assistente de iluminação na produção do longa-metragem “Metanoia”, dirigido por Miguel Nagle. De 2013 a 2016, foi iluminador das gravações dos DVDs de espetáculos da Cia Nissi, com as peças “Tortura”, “Fantasma de Naamã”, “Refém” e “Era uma Vez”, ambas produzidas pela Nissi Filmes. Desde 2018, atua na montagem e operação de luz dos espetáculos apresentados nas mostras da Escola de Teatro Macunaíma, em parceria com o iluminador Denilson Marques. Em 2019, trabalhou com Denilson Marques na peça “Mô”, dirigida por José Fernando Azevedo, e também colaborou na iluminação da peça “Contra-Revolução”, dirigida por Reginaldo Nascimento. Em 2020, começou a trabalhar como iluminador da peça “O Reino Sem Crianças”, da Companhia Cia dos Errantes, sob direção de Maristela Chelala. Em 2022, passou a integrar a equipe da Companhia de Dança Diário como iluminador das peças “Avoapé” e “D'Água”, ambas dirigidas por Rodrigo Alcântara. Em 2023, iniciou suas atividades como técnico de som e iluminação na Fábrica de Cultura do Capão Redondo, consolidando sua atuação em espaços culturais e educativos da cidade. Nesse ano assinou a luz de “Severino, o espetáculo”. Ele é responsável por dar luz a nossa história.",
+                insta: "https://instagram.com/RAFACASI"
+            }
+        ];
+
+        // ==========================================
+        // 2. RENDERIZAÇÃO DO ELENCO (Minimalista)
+        // ==========================================
+        const gridAtores = document.getElementById('grid-atores');
+        const modal = document.getElementById('modal-ator');
+        const btnFechar = document.getElementById('fechar-modal');
+
+        dadosElenco.forEach((ator) => {
+            const div = document.createElement('div');
+            div.className = 'ator-card gsap-stagger'; 
+            
+            div.innerHTML = `
+                <div class="ator-img-wrapper">
+                    <img src="${ator.img}" alt="${ator.nome}" class="ator-img">
+                </div>
+                <div class="ator-info">
+                    <div class="ator-nome">${ator.nome}</div>
+                </div>
+            `;
+            
+            div.addEventListener('click', () => {
+                document.getElementById('modal-foto').src = ator.img;
+                document.getElementById('modal-nome-texto').innerText = ator.nome;
+                document.getElementById('modal-papel-texto').innerText = ator.papel;
+                document.getElementById('modal-bio-texto').innerText = ator.bio;
+                document.getElementById('modal-link-insta').href = ator.insta;
+                
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; 
+            });
+            
+            gridAtores.appendChild(div);
+        });
+
+        const fecharModal = () => {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto'; 
+        };
+
+        btnFechar.addEventListener('click', fecharModal);
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) fecharModal();
+        });
+
+        // ==========================================
+        // 3. PIXIJS - HERO PARALLAX INTELIGENTE
+        // ==========================================
+        const app = new PIXI.Application({
+            backgroundColor: 0x000000,
+            resolution: window.devicePixelRatio || 1,
+            autoDensity: true,
+        });
+        document.getElementById('hero-canvas').appendChild(app.view);
+
+        const canvasContainer = new PIXI.Container();
+        app.stage.addChild(canvasContainer);
+
+        const imgUrl = 'hero-baleia.jpg'; 
+        const depthUrl = 'depth-map.jpg'; 
+
+        const sprite = PIXI.Sprite.from(imgUrl);
+        const depthSprite = PIXI.Sprite.from(depthUrl);
+        const displacementFilter = new PIXI.DisplacementFilter(depthSprite);
+        
+        canvasContainer.addChild(sprite);
+        canvasContainer.addChild(depthSprite);
+        canvasContainer.filters = [displacementFilter];
+
+        displacementFilter.scale.x = 0;
+        displacementFilter.scale.y = 0;
+
+        function resizeHero() {
+            const windowWidth = window.innerWidth;
+            const imgWidth = sprite.texture.width;
+            const imgHeight = sprite.texture.height;
+
+            const scale = windowWidth / imgWidth;
+            const calculatedHeight = imgHeight * scale;
+
+            app.renderer.resize(windowWidth, calculatedHeight);
+            document.getElementById('hero-section').style.height = `${calculatedHeight}px`;
+
+            sprite.width = windowWidth;
+            sprite.height = calculatedHeight;
+            sprite.position.x = 0;
+            sprite.position.y = 0;
+
+            depthSprite.width = sprite.width;
+            depthSprite.height = sprite.height;
+            depthSprite.position.x = 0;
+            depthSprite.position.y = 0;
+
+            if (typeof ScrollTrigger !== 'undefined') {
+                ScrollTrigger.refresh();
+            }
+        }
+
+        sprite.texture.baseTexture.on('loaded', resizeHero);
+        window.addEventListener('resize', resizeHero);
+
+        window.addEventListener('pointermove', (e) => {
+            if(window.scrollY < document.getElementById('hero-section').offsetHeight) {
+                const x = (window.innerWidth / 2 - e.clientX) / 25;
+                const y = (window.innerHeight / 2 - e.clientY) / 25;
+                gsap.to(displacementFilter.scale, { x: x, y: y, duration: 1, ease: "power2.out" });
+            }
+        });
+
+        // ==========================================
+        // 4. GSAP - ANIMAÇÕES IMERSIVAS
+        // ==========================================
+        gsap.registerPlugin(ScrollTrigger);
+
+        setTimeout(() => {
+            // Animação padrão (fade up)
+            const elementsToReveal = document.querySelectorAll('.gsap-reveal');
+            elementsToReveal.forEach((elem) => {
+                gsap.to(elem, {
+                    scrollTrigger: {
+                        trigger: elem,
+                        start: "top 85%",
+                        toggleActions: "play none none reverse"
+                    },
+                    opacity: 1,
+                    y: 0,
+                    duration: 1,
+                    ease: "power3.out"
+                });
+            });
+
+            const galeriaTrack = document.querySelector(".galeria-track");
+            
+            function getScrollAmount() {
+                let trackWidth = galeriaTrack.scrollWidth;
+                return -(trackWidth - window.innerWidth);
+            }
+
+            const tween = gsap.to(galeriaTrack, {
+                x: getScrollAmount,
+                ease: "none"
+            });
+
+            ScrollTrigger.create({
+                trigger: ".galeria-container",
+                start: "top top",
+                end: () => `+=${getScrollAmount() * -1}`,
+                pin: true,
+                animation: tween,
+                scrub: 1, 
+                invalidateOnRefresh: true 
+            });
+
+            ScrollTrigger.batch(".gsap-stagger", {
+                onEnter: batch => gsap.to(batch, {
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 0.8, 
+                    stagger: 0.15, 
+                    ease: "power3.out"
+                }),
+                onLeaveBack: batch => gsap.set(batch, {opacity: 0, y: 30}),
+                start: "top 90%"
+            });
+
+        }, 300);
+
+    </script>
+</body>
+</html>
