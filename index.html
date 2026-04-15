@@ -414,6 +414,19 @@
         }
         .patrocinio-logo:hover { filter: grayscale(0%) opacity(1); }
 
+      
+        .assinatura-aj {
+            display: inline-flex; align-items: center; gap: 10px; margin-top: 25px;
+            padding: 8px 20px; background: rgba(60, 83, 120, 0.1);
+            border-radius: 50px; border: 1px solid rgba(87, 146, 202, 0.3);
+            text-decoration: none; transition: all 0.3s ease;
+        }
+        .assinatura-aj:hover { background: rgba(60, 83, 120, 0.3); transform: translateY(-2px); }
+        .assinatura-txt { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-beige); }
+        .assinatura-nome { font-weight: 700; color: var(--blue-light); }
+
+    
+
         /* --- FOOTER --- */
         footer { 
             text-align: center; padding: 40px 20px; background: var(--bg-black); 
@@ -592,7 +605,11 @@
 
     <footer>
         <p>© 2026 Espetáculo Baleia. Todos os direitos reservados.</p>
-        <p>Desenvolvido por <a href="https://anajuliatorianipessoa.vercel.app/" style="color: #c9cbbc">AJ</a></p>
+        <a href="https://ajwebstudio.vercel.app/" target="_blank" class="assinatura-aj">
+            <span class="assinatura-txt">Desenvolvido por</span>
+            <span class="assinatura-nome">AJ Web Studio</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
     </footer>
 
     <script>
