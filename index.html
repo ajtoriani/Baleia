@@ -382,6 +382,40 @@
         }
         .agenda-data { font-size: 1.5rem; font-weight: 700; color: var(--blue-light); }
         .agenda-local { color: var(--text-beige); margin-top: 8px; }
+        .agenda-temporada {
+            text-align: center;
+            margin: -1rem auto 2rem;
+        }
+        .agenda-temporada h3 {
+            color: var(--blue-light);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        .agenda-temporada p {
+            color: var(--text-beige);
+            font-size: 1.1rem;
+        }
+        .agenda-grupo {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .agenda-grupo-titulo {
+            color: var(--text-beige);
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+        .agenda-item strong { color: var(--blue-light); }
+        .agenda-observacao {
+            color: var(--text-beige);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 10px auto 0;
+            max-width: 600px;
+            text-align: center;
+        }
 
         /* --- PATROCINADORES --- */
         .patrocinadores-section {
@@ -573,17 +607,62 @@
 
     <section id="agenda" class="container">
         <h2 class="section-title gsap-reveal">Calendário de Apresentações</h2>
+        <div class="agenda-temporada gsap-reveal">
+             <p class="agenda-observacao gsap-reveal"><strong>Todas as sessões são gratuitas</strong>, com retirada de ingressos 1 hora antes.</p>
+        </div>
         <div class="agenda-list">
-            <div class="agenda-item gsap-reveal" style="justify-content: center; flex-direction: column; text-align: center; gap: 20px; padding: 50px 20px;">
-                <div>
-                    <div class="agenda-data" style="font-size: 2rem;">Em breve, nova temporada!</div>
-                    <div class="agenda-local" style="font-size: 1.1rem; margin-top: 15px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-                        A nossa travessia continua. Fique de olho nas nossas redes sociais para ser o primeiro a saber quando voltaremos aos palcos.
+            <div class="agenda-grupo">
+                <h3 class="agenda-grupo-titulo">Teatro Paulo Eiró | SP</h3>
+                <div class="agenda-item gsap-reveal">
+                    <div>
+                        <div class="agenda-data">02/10 - Sex | 20h</div>
+                        <div class="agenda-local">Baleia - Teatro Paulo Eiró</div>
                     </div>
                 </div>
-                <a href="https://www.instagram.com/baleiaespetaculo/" target="_blank" class="cta-button" style="margin-top: 15px; padding: 15px 35px; font-size: 1rem;">
-                    Acompanhar Novidades
-                </a>
+                <div class="agenda-item gsap-reveal">
+                    <div>
+                        <div class="agenda-data">03/10 - Sáb | 20h</div>
+                        <div class="agenda-local">Baleia - Teatro Paulo Eiró</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agenda-grupo">
+                <h3 class="agenda-grupo-titulo">Teatro João Caetano | SP</h3>
+                <div class="agenda-item gsap-reveal">
+                    <div>
+                        <div class="agenda-data">23/10 - Sex | 20h</div>
+                        <div class="agenda-local">Baleia - Teatro João Caetano</div>
+                    </div>
+                </div>
+                <div class="agenda-item gsap-reveal">
+                    <div>
+                        <div class="agenda-data">24/10 - Sáb | 20h</div>
+                        <div class="agenda-local">Baleia - Teatro João Caetano</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agenda-grupo">
+                <h3 class="agenda-grupo-titulo">Teatro Arthur Azevedo | SP</h3>
+                <div class="agenda-item gsap-reveal">
+                    <div>
+                        <div class="agenda-data">30/10 - Sex | 20h</div>
+                        <div class="agenda-local">Baleia - Teatro Arthur Azevedo</div>
+                    </div>
+                </div>
+                <div class="agenda-item gsap-reveal">
+                    <div>
+                        <div class="agenda-data">31/10 - Sáb | 20h</div>
+                        <div class="agenda-local">Baleia - Teatro Arthur Azevedo</div>
+                    </div>
+                </div>
+                <div class="agenda-item gsap-reveal">
+                    <div>
+                        <div class="agenda-data">01/11 - Dom | 19h</div>
+                        <div class="agenda-local">Baleia - Teatro Arthur Azevedo</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
